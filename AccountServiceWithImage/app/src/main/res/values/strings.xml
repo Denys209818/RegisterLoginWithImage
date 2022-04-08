@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">AccountServiceWithImage</string>
+    <string name="register">Реєстрація</string>
+    <string name="firstName">Ім\'я</string>
+    <string name="confirmPassword">Підтердження пароля</string>
+    <string name="secondName">Прізвище</string>
+    <string name="email">Електронна адреса</string>
+    <string name="phone">Телефон</string>
+    <string name="password">Пароль</string>
+    <string name="to_main">На головну</string>
+</resources>
