@@ -103,6 +103,7 @@ namespace ImageSaveAndroidWithImageWorker.Controllers
         [Route("users")]
         public async Task<IActionResult> GetAllUsers() 
         {
+            Thread.Sleep(3000);
             return await Task.Run(() => {
                 return Ok(_context.Users.Select(x => 
                 _mapper.Map<UserItemViewModel>(x)).ToList());
