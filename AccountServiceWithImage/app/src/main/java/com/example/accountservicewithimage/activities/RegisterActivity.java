@@ -15,7 +15,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.accountservicewithimage.MainActivity;
 import com.example.accountservicewithimage.R;
+import com.example.accountservicewithimage.activities.abstracts.AbstractActivity;
 import com.example.accountservicewithimage.network.AccountService;
+import com.example.accountservicewithimage.network.HomeApplication;
 import com.example.accountservicewithimage.network.dto.RegisterModelDto;
 import com.example.accountservicewithimage.network.dto.RegisterReturnedDto;
 import com.example.accountservicewithimage.network.dto.errors.ErrorsDto;
@@ -31,7 +33,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class RegisterActivity extends AppCompatActivity {
+public class RegisterActivity extends AbstractActivity {
 
     private ImageView imageView;
     private TextInputEditText txtFirstname;
@@ -107,42 +109,42 @@ public class RegisterActivity extends AppCompatActivity {
 
     public void onSubmitForm(View view)
     {
-        this.txtLayoutFirstname.setError(null);
-        this.txtLayoutSecondname.setError(null);
-        this.txtLayoutEmail.setError(null);
-        this.txtLayoutPhone.setError(null);
-        this.txtLayoutPassword.setError(null);
-        this.txtLayoutConfirmPassword.setError(null);
-        try
-        {
-            if(!isValidTextFields())
-                return;
+        if(onWifiCheck()) {
+            this.txtLayoutFirstname.setError(null);
+            this.txtLayoutSecondname.setError(null);
+            this.txtLayoutEmail.setError(null);
+            this.txtLayoutPhone.setError(null);
+            this.txtLayoutPassword.setError(null);
+            this.txtLayoutConfirmPassword.setError(null);
+            try {
+                if (!isValidTextFields())
+                    return;
 
-            RegisterModelDto registerModelDto = new RegisterModelDto();
-            registerModelDto.setFirstName(this.txtFirstname.getText().toString());
-            registerModelDto.setSecondName(this.txtSecondname.getText().toString());
-            registerModelDto.setEmail(this.txtEmail.getText().toString());
-            registerModelDto.setPhone(this.txtPhone.getText().toString());
-            registerModelDto.setPhoto(_base64Image);
-            registerModelDto.setPassword(this.txtPassword.getText().toString());
-            registerModelDto.setConfirmPassword(this.txtConfirmPassword.getText().toString());
+                RegisterModelDto registerModelDto = new RegisterModelDto();
+                registerModelDto.setFirstName(this.txtFirstname.getText().toString());
+                registerModelDto.setSecondName(this.txtSecondname.getText().toString());
+                registerModelDto.setEmail(this.txtEmail.getText().toString());
+                registerModelDto.setPhone(this.txtPhone.getText().toString());
+                registerModelDto.setPhoto(_base64Image);
+                registerModelDto.setPassword(this.txtPassword.getText().toString());
+                registerModelDto.setConfirmPassword(this.txtConfirmPassword.getText().toString());
 
-            AccountService.getInstance()
-                    .getRetrofit()
-                    .register(registerModelDto)
-                    .enqueue(new Callback<RegisterReturnedDto>() {
-                        @Override
-                        public void onResponse(Call<RegisterReturnedDto> call,
-                                               Response<RegisterReturnedDto> response) {
-                            if(response.isSuccessful())
-                            {
-                                RegisterReturnedDto retRegister = response.body();
-                                Intent intent = new Intent(RegisterActivity.this,
-                                        MainActivity.class);
+                AccountService.getInstance()
+                        .getRetrofit()
+                        .register(registerModelDto)
+                        .enqueue(new Callback<RegisterReturnedDto>() {
+                            @Override
+                            public void onResponse(Call<RegisterReturnedDto> call,
+                                                   Response<RegisterReturnedDto> response) {
+                                if (response.isSuccessful()) {
+                                    RegisterReturnedDto retRegister = response.body();
+                                    HomeApplication application = HomeApplication.getApplication();
+                                    application.saveToken(retRegister.getToken());
+                                    Intent intent = new Intent(RegisterActivity.this,
+                                            MainActivity.class);
 
-                                startActivity(intent);
-                            }else
-                                {
+                                    startActivity(intent);
+                                } else {
                                     try {
                                         String jsonError = response.errorBody().string();
                                         setExceptionFromServer(jsonError);
@@ -150,20 +152,24 @@ public class RegisterActivity extends AppCompatActivity {
                                         e.printStackTrace();
                                     }
                                 }
-                        }
+                            }
 
-                        @Override
-                        public void onFailure(Call<RegisterReturnedDto> call, Throwable t) {
-                            t.printStackTrace();
-                            Toast.makeText(RegisterActivity.this,
-                                    "Помилка в запиті: " + t.getMessage(),
-                                    Toast.LENGTH_SHORT).show();
-                        }
-                    });
-        }
-        catch(Exception ex)
+                            @Override
+                            public void onFailure(Call<RegisterReturnedDto> call, Throwable t) {
+                                t.printStackTrace();
+                                Toast.makeText(RegisterActivity.this,
+                                        "Помилка в запиті: " + t.getMessage(),
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        });
+
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }else
         {
-            ex.printStackTrace();
+            showDialog();
         }
     }
 

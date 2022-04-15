@@ -14,9 +14,12 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.accountservicewithimage.MainActivity;
 import com.example.accountservicewithimage.R;
+import com.example.accountservicewithimage.activities.abstracts.AbstractActivity;
 import com.example.accountservicewithimage.network.AccountService;
+import com.example.accountservicewithimage.network.HomeApplication;
 import com.example.accountservicewithimage.network.dto.LoginModelDto;
 import com.example.accountservicewithimage.network.dto.LoginReturnedDto;
+import com.example.accountservicewithimage.network.dto.RegisterReturnedDto;
 import com.example.accountservicewithimage.network.dto.errors.ErrorsDto;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -28,7 +31,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends AbstractActivity {
 
     private TextInputEditText txtLoginEmail;
     private TextInputEditText txtLoginPassword;
@@ -48,28 +51,29 @@ public class LoginActivity extends AppCompatActivity {
 
     public void onLoginHandler(View view)
     {
+        if(onWifiCheck()) {
+            if (!isValidTextFields())
+                return;
 
-        if(!isValidTextFields())
-            return;
+            LoginModelDto loginModelDto = new LoginModelDto();
+            loginModelDto.setEmail(this.txtLoginEmail.getText().toString());
+            loginModelDto.setPassword(this.txtLoginPassword.getText().toString());
 
-        LoginModelDto loginModelDto = new LoginModelDto();
-        loginModelDto.setEmail(this.txtLoginEmail.getText().toString());
-        loginModelDto.setPassword(this.txtLoginPassword.getText().toString());
-
-        AccountService
-                .getInstance()
-                .getRetrofit()
-                .login(loginModelDto)
-                .enqueue(new Callback<LoginReturnedDto>() {
-                    @Override
-                    public void onResponse(Call<LoginReturnedDto> call, Response<LoginReturnedDto> response) {
-                        if(response.isSuccessful()) {
-                            LoginReturnedDto retLogin = response.body();
-                            Intent intent = new Intent(LoginActivity.this,
-                                    MainActivity.class);
-                            startActivity(intent);
-                        }else
-                            {
+            AccountService
+                    .getInstance()
+                    .getRetrofit()
+                    .login(loginModelDto)
+                    .enqueue(new Callback<LoginReturnedDto>() {
+                        @Override
+                        public void onResponse(Call<LoginReturnedDto> call, Response<LoginReturnedDto> response) {
+                            if (response.isSuccessful()) {
+                                LoginReturnedDto retRegister = response.body();
+                                HomeApplication application = HomeApplication.getApplication();
+                                application.saveToken(retRegister.getToken());
+                                Intent intent = new Intent(LoginActivity.this,
+                                        MainActivity.class);
+                                startActivity(intent);
+                            } else {
                                 try {
                                     String jsonError = response.errorBody().string();
                                     setExceptionFromServer(jsonError);
@@ -77,17 +81,20 @@ public class LoginActivity extends AppCompatActivity {
                                     e.printStackTrace();
                                 }
                             }
-                    }
+                        }
 
-                    @Override
-                    public void onFailure(Call<LoginReturnedDto> call, Throwable t) {
-                        String text = "Помилка запиту: " + t.getMessage();
-                        Toast.makeText(LoginActivity.this,
-                                text
-                                , Toast.LENGTH_LONG).show();
-                    }
-                });
-
+                        @Override
+                        public void onFailure(Call<LoginReturnedDto> call, Throwable t) {
+                            String text = "Помилка запиту: " + t.getMessage();
+                            Toast.makeText(LoginActivity.this,
+                                    text
+                                    , Toast.LENGTH_LONG).show();
+                        }
+                    });
+        }else
+            {
+                showDialog();
+            }
     }
 
     public void setExceptionFromServer(String json)
@@ -158,27 +165,5 @@ public class LoginActivity extends AppCompatActivity {
         return true;
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.menu_register_login, menu);
-        return true;
-    }
 
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        switch(item.getItemId())
-        {
-            case R.id.to_main:
-                {
-                    Intent intent = new Intent(this, MainActivity.class);
-                    startActivity(intent);
-                    return true;
-                }
-            default:
-                {
-                    return super.onOptionsItemSelected(item);
-                }
-        }
-    }
 }

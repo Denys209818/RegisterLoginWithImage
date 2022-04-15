@@ -8,4 +8,7 @@
     <string name="phone">Телефон</string>
     <string name="password">Пароль</string>
     <string name="to_main">На головну</string>
+    <string name="viewText">Тестовий текст</string>
+    <string name="login">Авторизація</string>
+    <string name="users">Користувачі</string>
 </resources>

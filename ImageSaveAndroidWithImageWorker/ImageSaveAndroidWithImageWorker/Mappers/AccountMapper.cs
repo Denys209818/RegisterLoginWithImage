@@ -16,6 +16,10 @@ namespace ImageSaveAndroidWithImageWorker.Mappers
                 ForMember(x => x.Email, y=>y.MapFrom(z => z.Email))
                 .ForMember(x => x.UserName, y => y.MapFrom(z => z.Email));
 
+            CreateMap<AppUser, UserItemViewModel>()
+                .ForMember(x => x.FirstName, y => y.MapFrom(z => z.FirstName))
+                .ForMember(x => x.Image, y => y.MapFrom(z => "/Images/"+z.Photo));
+
         }
     }
 }

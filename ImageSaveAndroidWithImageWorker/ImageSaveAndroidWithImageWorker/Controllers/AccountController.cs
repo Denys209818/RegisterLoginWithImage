@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ImageSaveAndroidWithImageWorker.Data;
 using ImageSaveAndroidWithImageWorker.Data.Identity.Entities;
 using ImageSaveAndroidWithImageWorker.Models;
 using ImageSaveAndroidWithImageWorker.Services;
@@ -16,13 +17,15 @@ namespace ImageSaveAndroidWithImageWorker.Controllers
         private UserManager<AppUser> _userManager { get; set; }
         private IJwtTokenService _jwtTokenService { get; set; }
         private IMapper _mapper { get; set; }
+        private EFContext _context { get; set; }
 
         public AccountController(UserManager<AppUser> userManager, IJwtTokenService jwtTokenService,
-            IMapper mapper)
+            IMapper mapper, EFContext context)
         {
             _userManager = userManager;
             _jwtTokenService = jwtTokenService;
             _mapper = mapper;
+            _context = context;
         }
 
         [HttpPost]
@@ -93,6 +96,16 @@ namespace ImageSaveAndroidWithImageWorker.Controllers
                 }
 
                 return res;
+            });
+        }
+
+        [HttpGet]
+        [Route("users")]
+        public async Task<IActionResult> GetAllUsers() 
+        {
+            return await Task.Run(() => {
+                return Ok(_context.Users.Select(x => 
+                _mapper.Map<UserItemViewModel>(x)).ToList());
             });
         }
     }
